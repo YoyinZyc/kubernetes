@@ -17,6 +17,7 @@ limitations under the License.
 package buffered
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -265,7 +266,7 @@ func (b *bufferedBackend) ProcessEvents(ev ...*auditinternal.Event) bool {
 			sendErr = fmt.Errorf("audit backend shut down")
 		}
 		if sendErr != nil {
-			audit.HandlePluginError(PluginName, sendErr, ev[evIndex:]...)
+			audit.HandlePluginError(context.TODO(), PluginName, sendErr, ev[evIndex:]...)
 		}
 	}()
 

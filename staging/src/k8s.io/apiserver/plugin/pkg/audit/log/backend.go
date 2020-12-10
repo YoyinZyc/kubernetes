@@ -17,6 +17,7 @@ limitations under the License.
 package log
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -75,17 +76,17 @@ func (b *backend) logEvent(ev *auditinternal.Event) bool {
 	case FormatJson:
 		bs, err := runtime.Encode(b.encoder, ev)
 		if err != nil {
-			audit.HandlePluginError(PluginName, err, ev)
+			audit.HandlePluginError(context.TODO(), PluginName, err, ev)
 			return false
 		}
 		line = string(bs[:])
 	default:
-		audit.HandlePluginError(PluginName, fmt.Errorf("log format %q is not in list of known formats (%s)",
+		audit.HandlePluginError(context.TODO(), PluginName, fmt.Errorf("log format %q is not in list of known formats (%s)",
 			b.format, strings.Join(AllowedFormats, ",")), ev)
 		return false
 	}
 	if _, err := fmt.Fprint(b.out, line); err != nil {
-		audit.HandlePluginError(PluginName, err, ev)
+		audit.HandlePluginError(context.TODO(), PluginName, err, ev)
 		return false
 	}
 	return true

@@ -17,6 +17,7 @@ limitations under the License.
 package truncate
 
 import (
+	"context"
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -112,7 +113,7 @@ func (b *backend) ProcessEvents(events ...*auditinternal.Event) bool {
 	}
 
 	if len(impacted) > 0 {
-		audit.HandlePluginError(PluginName, utilerrors.NewAggregate(errors), impacted...)
+		audit.HandlePluginError(context.TODO(), PluginName, utilerrors.NewAggregate(errors), impacted...)
 	}
 	return success
 }

@@ -110,7 +110,7 @@ func (b *backend) Shutdown() {
 
 func (b *backend) ProcessEvents(ev ...*auditinternal.Event) bool {
 	if err := b.processEvents(ev...); err != nil {
-		audit.HandlePluginError(b.String(), err, ev...)
+		audit.HandlePluginError(context.TODO(), b.String(), err, ev...)
 		return false
 	}
 	return true
