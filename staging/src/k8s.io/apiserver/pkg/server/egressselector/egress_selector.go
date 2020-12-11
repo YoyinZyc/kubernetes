@@ -231,15 +231,15 @@ func (d *dialerCreator) createDialer() utilnet.DialFunc {
 		start := egressmetrics.Metrics.Clock().Now()
 		proxier, err := d.connector.connect()
 		if err != nil {
-			egressmetrics.Metrics.ObserveDialFailure(d.options.protocol, d.options.transport, egressmetrics.StageConnect)
+			egressmetrics.Metrics.ObserveDialFailure(ctx, d.options.protocol, d.options.transport, egressmetrics.StageConnect)
 			return nil, err
 		}
 		conn, err := proxier.proxy(addr)
 		if err != nil {
-			egressmetrics.Metrics.ObserveDialFailure(d.options.protocol, d.options.transport, egressmetrics.StageProxy)
+			egressmetrics.Metrics.ObserveDialFailure(ctx, d.options.protocol, d.options.transport, egressmetrics.StageProxy)
 			return nil, err
 		}
-		egressmetrics.Metrics.ObserveDialLatency(egressmetrics.Metrics.Clock().Now().Sub(start), d.options.protocol, d.options.transport)
+		egressmetrics.Metrics.ObserveDialLatency(ctx, egressmetrics.Metrics.Clock().Now().Sub(start), d.options.protocol, d.options.transport)
 		return conn, nil
 	}
 }

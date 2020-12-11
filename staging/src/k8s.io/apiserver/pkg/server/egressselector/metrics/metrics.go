@@ -17,6 +17,7 @@ limitations under the License.
 package metrics
 
 import (
+	"context"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/clock"
@@ -104,11 +105,11 @@ func (m *DialMetrics) Reset() {
 }
 
 // ObserveDialLatency records the latency of a dial, labeled by protocol, transport.
-func (m *DialMetrics) ObserveDialLatency(elapsed time.Duration, protocol, transport string) {
-	m.latencies.WithLabelValues(protocol, transport).Observe(elapsed.Seconds())
+func (m *DialMetrics) ObserveDialLatency(ctx context.Context, elapsed time.Duration, protocol, transport string) {
+	m.latencies.WithContext(ctx).WithLabelValues(protocol, transport).Observe(elapsed.Seconds())
 }
 
 // ObserveDialFailure records a failed dial, labeled by protocol, transport, and the stage the dial failed at.
-func (m *DialMetrics) ObserveDialFailure(protocol, transport, stage string) {
-	m.failures.WithLabelValues(protocol, transport, stage).Inc()
+func (m *DialMetrics) ObserveDialFailure(ctx context.Context, protocol, transport, stage string) {
+	m.failures.WithContext(ctx).WithLabelValues(protocol, transport, stage).Inc()
 }
