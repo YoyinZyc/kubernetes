@@ -280,7 +280,7 @@ const tlsHandshakeErrorPrefix = "http: TLS handshake error"
 func (w *tlsHandshakeErrorWriter) Write(p []byte) (int, error) {
 	if strings.Contains(string(p), tlsHandshakeErrorPrefix) {
 		klog.V(5).Info(string(p))
-		metrics.TLSHandshakeErrors.Inc()
+		metrics.TLSHandshakeErrors.WithContext(context.TODO()).Inc()
 		return len(p), nil
 	}
 

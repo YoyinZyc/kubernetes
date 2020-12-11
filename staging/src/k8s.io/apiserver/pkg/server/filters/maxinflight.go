@@ -17,6 +17,7 @@ limitations under the License.
 package filters
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sync"
@@ -103,7 +104,7 @@ func startWatermarkMaintenance(watermark *requestWatermark, stopCh <-chan struct
 		watermark.mutatingWatermark = 0
 		watermark.lock.Unlock()
 
-		metrics.UpdateInflightRequestMetrics(watermark.phase, readOnlyWatermark, mutatingWatermark)
+		metrics.UpdateInflightRequestMetrics(context.TODO(), watermark.phase, readOnlyWatermark, mutatingWatermark)
 	}, inflightUsageMetricUpdatePeriod, stopCh)
 
 	// Periodically observe the watermarks. This is done to ensure that they do not fall too far behind. When they do
@@ -196,9 +197,9 @@ func WithMaxInFlightLimit(
 				}
 				// We need to split this data between buckets used for throttling.
 				if isMutatingRequest {
-					metrics.DroppedRequests.WithLabelValues(metrics.MutatingKind).Inc()
+					metrics.DroppedRequests.WithContext(ctx).WithLabelValues(metrics.MutatingKind).Inc()
 				} else {
-					metrics.DroppedRequests.WithLabelValues(metrics.ReadOnlyKind).Inc()
+					metrics.DroppedRequests.WithContext(ctx).WithLabelValues(metrics.ReadOnlyKind).Inc()
 				}
 				metrics.RecordRequestTermination(r, requestInfo, metrics.APIServerComponent, http.StatusTooManyRequests)
 				tooManyRequests(r, w)
