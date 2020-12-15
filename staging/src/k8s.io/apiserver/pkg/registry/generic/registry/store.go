@@ -1379,9 +1379,9 @@ func (e *Store) startObservingCount(period time.Duration) func() {
 		count, err := e.Storage.Count(prefix)
 		if err != nil {
 			klog.V(5).Infof("Failed to update storage count metric: %v", err)
-			metrics.UpdateObjectCount(resourceName, -1)
+			metrics.UpdateObjectCount(context.TODO(), resourceName, -1)
 		} else {
-			metrics.UpdateObjectCount(resourceName, count)
+			metrics.UpdateObjectCount(context.TODO(), resourceName, count)
 		}
 	}, period, resourceCountPollPeriodJitter, true, stopCh)
 	return func() { close(stopCh) }

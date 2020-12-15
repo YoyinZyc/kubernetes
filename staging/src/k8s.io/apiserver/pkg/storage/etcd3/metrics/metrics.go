@@ -17,6 +17,7 @@ limitations under the License.
 package metrics
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -85,18 +86,18 @@ func Register() {
 }
 
 // UpdateObjectCount sets the etcd_object_counts metric.
-func UpdateObjectCount(resourcePrefix string, count int64) {
-	objectCounts.WithLabelValues(resourcePrefix).Set(float64(count))
+func UpdateObjectCount(ctx context.Context, resourcePrefix string, count int64) {
+	objectCounts.WithContext(ctx).WithLabelValues(resourcePrefix).Set(float64(count))
 }
 
 // RecordEtcdRequestLatency sets the etcd_request_duration_seconds metrics.
-func RecordEtcdRequestLatency(verb, resource string, startTime time.Time) {
-	etcdRequestLatency.WithLabelValues(verb, resource).Observe(sinceInSeconds(startTime))
+func RecordEtcdRequestLatency(ctx context.Context, verb, resource string, startTime time.Time) {
+	etcdRequestLatency.WithContext(ctx).WithLabelValues(verb, resource).Observe(sinceInSeconds(startTime))
 }
 
 // RecordEtcdBookmark updates the etcd_bookmark_counts metric.
-func RecordEtcdBookmark(resource string) {
-	etcdBookmarkCounts.WithLabelValues(resource).Inc()
+func RecordEtcdBookmark(ctx context.Context, resource string) {
+	etcdBookmarkCounts.WithContext(ctx).WithLabelValues(resource).Inc()
 }
 
 // Reset resets the etcd_request_duration_seconds metric.
@@ -110,6 +111,6 @@ func sinceInSeconds(start time.Time) float64 {
 }
 
 // UpdateEtcdDbSize sets the etcd_db_total_size_in_bytes metric.
-func UpdateEtcdDbSize(ep string, size int64) {
+func UpdateEtcdDbSize(ctx context.Context, ep string, size int64) {
 	dbTotalSize.WithLabelValues(ep).Set(float64(size))
 }

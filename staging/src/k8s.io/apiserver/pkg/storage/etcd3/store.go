@@ -115,7 +115,7 @@ func (s *store) Get(ctx context.Context, key string, opts storage.GetOptions, ou
 	key = path.Join(s.pathPrefix, key)
 	startTime := time.Now()
 	getResp, err := s.client.KV.Get(ctx, key)
-	metrics.RecordEtcdRequestLatency("get", getTypeName(out), startTime)
+	metrics.RecordEtcdRequestLatency(ctx, "get", getTypeName(out), startTime)
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func (s *store) Create(ctx context.Context, key string, obj, out runtime.Object,
 	).Then(
 		clientv3.OpPut(key, string(newData), opts...),
 	).Commit()
-	metrics.RecordEtcdRequestLatency("create", getTypeName(obj), startTime)
+	metrics.RecordEtcdRequestLatency(ctx, "create", getTypeName(obj), startTime)
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func (s *store) Delete(ctx context.Context, key string, out runtime.Object, prec
 func (s *store) conditionalDelete(ctx context.Context, key string, out runtime.Object, v reflect.Value, preconditions *storage.Preconditions, validateDeletion storage.ValidateObjectFunc) error {
 	startTime := time.Now()
 	getResp, err := s.client.KV.Get(ctx, key)
-	metrics.RecordEtcdRequestLatency("get", getTypeName(out), startTime)
+	metrics.RecordEtcdRequestLatency(ctx, "get", getTypeName(out), startTime)
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (s *store) conditionalDelete(ctx context.Context, key string, out runtime.O
 		).Else(
 			clientv3.OpGet(key),
 		).Commit()
-		metrics.RecordEtcdRequestLatency("delete", getTypeName(out), startTime)
+		metrics.RecordEtcdRequestLatency(ctx, "delete", getTypeName(out), startTime)
 		if err != nil {
 			return err
 		}
@@ -251,7 +251,7 @@ func (s *store) GuaranteedUpdate(
 	getCurrentState := func() (*objState, error) {
 		startTime := time.Now()
 		getResp, err := s.client.KV.Get(ctx, key)
-		metrics.RecordEtcdRequestLatency("get", getTypeName(out), startTime)
+		metrics.RecordEtcdRequestLatency(ctx, "get", getTypeName(out), startTime)
 		if err != nil {
 			return nil, err
 		}
@@ -355,7 +355,7 @@ func (s *store) GuaranteedUpdate(
 		).Else(
 			clientv3.OpGet(key),
 		).Commit()
-		metrics.RecordEtcdRequestLatency("update", getTypeName(out), startTime)
+		metrics.RecordEtcdRequestLatency(ctx, "update", getTypeName(out), startTime)
 		if err != nil {
 			return err
 		}
@@ -412,7 +412,7 @@ func (s *store) GetToList(ctx context.Context, key string, listOpts storage.List
 	}
 
 	getResp, err := s.client.KV.Get(ctx, key, opts...)
-	metrics.RecordEtcdRequestLatency("get", getTypeName(listPtr), startTime)
+	metrics.RecordEtcdRequestLatency(ctx, "get", getTypeName(listPtr), startTime)
 	if err != nil {
 		return err
 	}
@@ -462,7 +462,7 @@ func (s *store) Count(key string) (int64, error) {
 
 	startTime := time.Now()
 	getResp, err := s.client.KV.Get(context.Background(), key, clientv3.WithRange(clientv3.GetPrefixRangeEnd(key)), clientv3.WithCountOnly())
-	metrics.RecordEtcdRequestLatency("listWithCount", key, startTime)
+	metrics.RecordEtcdRequestLatency(context.TODO(), "listWithCount", key, startTime)
 	if err != nil {
 		return 0, err
 	}
@@ -653,7 +653,7 @@ func (s *store) List(ctx context.Context, key string, opts storage.ListOptions, 
 	for {
 		startTime := time.Now()
 		getResp, err = s.client.KV.Get(ctx, key, options...)
-		metrics.RecordEtcdRequestLatency("list", getTypeName(listPtr), startTime)
+		metrics.RecordEtcdRequestLatency(ctx, "list", getTypeName(listPtr), startTime)
 		if err != nil {
 			return interpretListError(err, len(pred.Continue) > 0, continueKey, keyPrefix)
 		}

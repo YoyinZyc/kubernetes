@@ -250,7 +250,7 @@ func (wc *watchChan) startWatching(watchClosedCh chan struct{}) {
 		}
 		if wres.IsProgressNotify() {
 			wc.sendEvent(progressNotifyEvent(wres.Header.GetRevision()))
-			metrics.RecordEtcdBookmark(wc.watcher.objectType)
+			metrics.RecordEtcdBookmark(wc.ctx, wc.watcher.objectType)
 			continue
 		}
 

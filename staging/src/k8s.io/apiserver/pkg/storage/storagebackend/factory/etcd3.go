@@ -278,9 +278,9 @@ func startDBSizeMonitorPerEndpoint(client *clientv3.Client, interval time.Durati
 			epStatus, err := client.Maintenance.Status(ctx, endpoint)
 			if err != nil {
 				klog.V(4).Infof("Failed to get storage db size for ep %s: %v", endpoint, err)
-				metrics.UpdateEtcdDbSize(endpoint, -1)
+				metrics.UpdateEtcdDbSize(ctx, endpoint, -1)
 			} else {
-				metrics.UpdateEtcdDbSize(endpoint, epStatus.DbSize)
+				metrics.UpdateEtcdDbSize(ctx, endpoint, epStatus.DbSize)
 			}
 		}, interval, dbMetricsMonitorJitter, true)
 	}
