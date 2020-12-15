@@ -18,6 +18,7 @@ package envelope
 
 import (
 	"bytes"
+	"context"
 	"crypto/aes"
 	"encoding/base64"
 	"encoding/binary"
@@ -257,8 +258,8 @@ func TestBackwardsCompatibility(t *testing.T) {
 }
 
 // remove after 1.13
-func oldTransformToStorage(t *envelopeTransformer, data []byte, context value.Context) ([]byte, error) {
-	newKey, err := generateKey(32)
+func oldTransformToStorage(t *envelopeTransformer, data []byte, ctx value.Context) ([]byte, error) {
+	newKey, err := generateKey(context.TODO(), 32)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +283,7 @@ func oldTransformToStorage(t *envelopeTransformer, data []byte, context value.Co
 
 	prefixedData := make([]byte, len(prefix), len(data)+len(prefix))
 	copy(prefixedData, prefix)
-	result, err := transformer.TransformToStorage(data, context)
+	result, err := transformer.TransformToStorage(data, ctx)
 	if err != nil {
 		return nil, err
 	}

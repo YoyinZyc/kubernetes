@@ -17,6 +17,7 @@ limitations under the License.
 package envelope
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -78,7 +79,7 @@ func registerMetrics() {
 	})
 }
 
-func recordArrival(transformationType string, start time.Time) {
+func recordArrival(ctx context.Context, transformationType string, start time.Time) {
 	switch transformationType {
 	case fromStorageLabel:
 		lockLastFromStorage.Lock()
@@ -87,7 +88,7 @@ func recordArrival(transformationType string, start time.Time) {
 		if lastFromStorage.IsZero() {
 			lastFromStorage = start
 		}
-		dekCacheInterArrivals.WithLabelValues(transformationType).Observe(start.Sub(lastFromStorage).Seconds())
+		dekCacheInterArrivals.WithContext(ctx).WithLabelValues(transformationType).Observe(start.Sub(lastFromStorage).Seconds())
 		lastFromStorage = start
 	case toStorageLabel:
 		lockLastToStorage.Lock()
@@ -96,7 +97,7 @@ func recordArrival(transformationType string, start time.Time) {
 		if lastToStorage.IsZero() {
 			lastToStorage = start
 		}
-		dekCacheInterArrivals.WithLabelValues(transformationType).Observe(start.Sub(lastToStorage).Seconds())
+		dekCacheInterArrivals.WithContext(ctx).WithLabelValues(transformationType).Observe(start.Sub(lastToStorage).Seconds())
 		lastToStorage = start
 	}
 }

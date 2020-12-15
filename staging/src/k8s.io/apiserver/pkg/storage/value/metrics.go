@@ -17,6 +17,7 @@ limitations under the License.
 package value
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -111,28 +112,27 @@ func RegisterMetrics() {
 
 // RecordTransformation records latencies and count of TransformFromStorage and TransformToStorage operations.
 // Note that transformation_failures_total metric is deprecated, use transformation_operations_total instead.
-func RecordTransformation(transformationType, transformerPrefix string, start time.Time, err error) {
-	transformerOperationsTotal.WithLabelValues(transformationType, transformerPrefix, status.Code(err).String()).Inc()
-
+func RecordTransformation(ctx context.Context, transformationType, transformerPrefix string, start time.Time, err error) {
+	transformerOperationsTotal.WithContext(ctx).WithLabelValues(transformationType, transformerPrefix, status.Code(err).String()).Inc()
 	switch {
 	case err == nil:
-		transformerLatencies.WithLabelValues(transformationType).Observe(sinceInSeconds(start))
+		transformerLatencies.WithContext(ctx).WithLabelValues(transformationType).Observe(sinceInSeconds(start))
 	}
 }
 
 // RecordCacheMiss records a miss on Key Encryption Key(KEK) - call to KMS was required to decrypt KEK.
-func RecordCacheMiss() {
-	envelopeTransformationCacheMissTotal.Inc()
+func RecordCacheMiss(ctx context.Context) {
+	envelopeTransformationCacheMissTotal.WithContext(ctx).Inc()
 }
 
 // RecordDataKeyGeneration records latencies and count of Data Encryption Key generation operations.
-func RecordDataKeyGeneration(start time.Time, err error) {
+func RecordDataKeyGeneration(ctx context.Context, start time.Time, err error) {
 	if err != nil {
-		dataKeyGenerationFailuresTotal.Inc()
+		dataKeyGenerationFailuresTotal.WithContext(ctx).Inc()
 		return
 	}
 
-	dataKeyGenerationLatencies.Observe(sinceInSeconds(start))
+	dataKeyGenerationLatencies.WithContext(ctx).Observe(sinceInSeconds(start))
 }
 
 // sinceInSeconds gets the time since the specified start in seconds.

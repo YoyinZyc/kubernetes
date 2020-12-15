@@ -18,6 +18,7 @@ limitations under the License.
 package envelope
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -83,8 +84,8 @@ func NewEnvelopeTransformer(envelopeService Service, cacheSize int, baseTransfor
 }
 
 // TransformFromStorage decrypts data encrypted by this transformer using envelope encryption.
-func (t *envelopeTransformer) TransformFromStorage(data []byte, context value.Context) ([]byte, bool, error) {
-	recordArrival(fromStorageLabel, time.Now())
+func (t *envelopeTransformer) TransformFromStorage(data []byte, ctx value.Context) ([]byte, bool, error) {
+	recordArrival(context.TODO(), fromStorageLabel, time.Now())
 
 	// Read the 16 bit length-of-DEK encoded at the start of the encrypted DEK. 16 bits can
 	// represent a maximum key length of 65536 bytes. We are using a 256 bit key, whose
@@ -101,7 +102,7 @@ func (t *envelopeTransformer) TransformFromStorage(data []byte, context value.Co
 	transformer := t.getTransformer(encKey)
 	if transformer == nil {
 		if t.cacheEnabled {
-			value.RecordCacheMiss()
+			value.RecordCacheMiss(context.TODO())
 		}
 		key, err := t.envelopeService.Decrypt(encKey)
 		if err != nil {
@@ -117,13 +118,13 @@ func (t *envelopeTransformer) TransformFromStorage(data []byte, context value.Co
 		}
 	}
 
-	return transformer.TransformFromStorage(encData, context)
+	return transformer.TransformFromStorage(encData, ctx)
 }
 
 // TransformToStorage encrypts data to be written to disk using envelope encryption.
-func (t *envelopeTransformer) TransformToStorage(data []byte, context value.Context) ([]byte, error) {
-	recordArrival(toStorageLabel, time.Now())
-	newKey, err := generateKey(32)
+func (t *envelopeTransformer) TransformToStorage(data []byte, ctx value.Context) ([]byte, error) {
+	recordArrival(context.TODO(), toStorageLabel, time.Now())
+	newKey, err := generateKey(context.TODO(), 32)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +142,7 @@ func (t *envelopeTransformer) TransformToStorage(data []byte, context value.Cont
 		return nil, err
 	}
 
-	result, err := transformer.TransformToStorage(data, context)
+	result, err := transformer.TransformToStorage(data, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -187,9 +188,9 @@ func (t *envelopeTransformer) getTransformer(encKey []byte) value.Transformer {
 }
 
 // generateKey generates a random key using system randomness.
-func generateKey(length int) (key []byte, err error) {
+func generateKey(ctx context.Context, length int) (key []byte, err error) {
 	defer func(start time.Time) {
-		value.RecordDataKeyGeneration(start, err)
+		value.RecordDataKeyGeneration(ctx, start, err)
 	}(time.Now())
 	key = make([]byte, length)
 	if _, err = rand.Read(key); err != nil {
