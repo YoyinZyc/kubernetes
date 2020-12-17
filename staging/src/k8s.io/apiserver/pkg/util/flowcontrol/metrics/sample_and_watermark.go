@@ -17,6 +17,7 @@ limitations under the License.
 package metrics
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -141,25 +142,25 @@ type sampleAndWaterMarkAccumulator struct {
 
 var _ TimedObserver = (*sampleAndWaterMarkHistograms)(nil)
 
-func (saw *sampleAndWaterMarkHistograms) Add(deltaX float64) {
-	saw.innerSet(func() {
+func (saw *sampleAndWaterMarkHistograms) Add(ctx context.Context, deltaX float64) {
+	saw.innerSet(ctx, func() {
 		saw.x += deltaX
 	})
 }
 
-func (saw *sampleAndWaterMarkHistograms) Set(x float64) {
-	saw.innerSet(func() {
+func (saw *sampleAndWaterMarkHistograms) Set(ctx context.Context, x float64) {
+	saw.innerSet(ctx, func() {
 		saw.x = x
 	})
 }
 
-func (saw *sampleAndWaterMarkHistograms) SetX1(x1 float64) {
-	saw.innerSet(func() {
+func (saw *sampleAndWaterMarkHistograms) SetX1(ctx context.Context, x1 float64) {
+	saw.innerSet(ctx, func() {
 		saw.x1 = x1
 	})
 }
 
-func (saw *sampleAndWaterMarkHistograms) innerSet(updateXOrX1 func()) {
+func (saw *sampleAndWaterMarkHistograms) innerSet(ctx context.Context, updateXOrX1 func()) {
 	var when time.Time
 	var whenInt int64
 	var acc sampleAndWaterMarkAccumulator
@@ -202,9 +203,9 @@ func (saw *sampleAndWaterMarkHistograms) innerSet(updateXOrX1 func()) {
 		klog.Errorf("Time went backwards from %s to %s for labelValues=%#+v", lastSetS, whenS, saw.labelValues)
 	}
 	for acc.lastSetInt < whenInt {
-		saw.samples.WithLabelValues(saw.labelValues...).Observe(acc.relX)
-		saw.waterMarks.WithLabelValues(saw.loLabelValues...).Observe(acc.loRelX)
-		saw.waterMarks.WithLabelValues(saw.hiLabelValues...).Observe(acc.hiRelX)
+		saw.samples.WithContext(ctx).WithLabelValues(saw.labelValues...).Observe(acc.relX)
+		saw.waterMarks.WithContext(ctx).WithLabelValues(saw.loLabelValues...).Observe(acc.loRelX)
+		saw.waterMarks.WithContext(ctx).WithLabelValues(saw.hiLabelValues...).Observe(acc.hiRelX)
 		acc.lastSetInt++
 		acc.loRelX, acc.hiRelX = acc.relX, acc.relX
 	}

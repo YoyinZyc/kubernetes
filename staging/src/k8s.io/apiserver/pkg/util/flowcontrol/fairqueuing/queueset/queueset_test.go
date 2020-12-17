@@ -241,10 +241,10 @@ func (ust *uniformScenarioThread) callK(k int) {
 		execStart := ust.uss.clk.Now()
 		ust.uss.t.Logf("%s: %d, %d, %d executing", execStart.Format(nsTimeFmt), ust.i, ust.j, k)
 		atomic.AddInt32(&ust.uss.executions[ust.i], 1)
-		ust.igr.Add(1)
+		ust.igr.Add(context.TODO(), 1)
 		ust.uss.clk.EventAfterDuration(ust.genCallK(k+1), ust.uc.execDuration+ust.uc.thinkDuration)
 		ClockWait(ust.uss.clk, ust.uss.counter, ust.uc.execDuration)
-		ust.igr.Add(-1)
+		ust.igr.Add(context.TODO(), -1)
 	})
 	ust.uss.t.Logf("%s: %d, %d, %d got executed=%v, idle2=%v", ust.uss.clk.Now().Format(nsTimeFmt), ust.i, ust.j, k, executed, idle2)
 	if !executed {

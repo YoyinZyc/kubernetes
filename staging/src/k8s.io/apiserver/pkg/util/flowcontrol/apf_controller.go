@@ -533,7 +533,7 @@ func (meal *cfgMeal) finishQueueSetReconfigsLocked() {
 		// to a little more than serverConcurrencyLimit but the
 		// difference will be negligible.
 		concurrencyLimit := int(math.Ceil(float64(meal.cfgCtlr.serverConcurrencyLimit) * float64(plState.pl.Spec.Limited.AssuredConcurrencyShares) / meal.shareSum))
-		metrics.UpdateSharedConcurrencyLimit(plName, concurrencyLimit)
+		metrics.UpdateSharedConcurrencyLimit(context.TODO(), plName, concurrencyLimit)
 
 		if plState.queues == nil {
 			klog.V(5).Infof("Introducing queues for priority level %q: config=%s, concurrencyLimit=%d, quiescing=%v (shares=%v, shareSum=%v)", plName, fcfmt.Fmt(plState.pl.Spec), concurrencyLimit, plState.quiescing, plState.pl.Spec.Limited.AssuredConcurrencyShares, meal.shareSum)

@@ -64,8 +64,8 @@ type requestWatermark struct {
 	readOnlyWatermark, mutatingWatermark int
 }
 
-func (w *requestWatermark) recordMutating(mutatingVal int) {
-	w.mutatingObserver.Set(float64(mutatingVal))
+func (w *requestWatermark) recordMutating(ctx context.Context, mutatingVal int) {
+	w.mutatingObserver.Set(ctx, float64(mutatingVal))
 
 	w.lock.Lock()
 	defer w.lock.Unlock()
@@ -75,8 +75,8 @@ func (w *requestWatermark) recordMutating(mutatingVal int) {
 	}
 }
 
-func (w *requestWatermark) recordReadOnly(readOnlyVal int) {
-	w.readOnlyObserver.Set(float64(readOnlyVal))
+func (w *requestWatermark) recordReadOnly(ctx context.Context, readOnlyVal int) {
+	w.readOnlyObserver.Set(ctx, float64(readOnlyVal))
 
 	w.lock.Lock()
 	defer w.lock.Unlock()
@@ -111,8 +111,8 @@ func startWatermarkMaintenance(watermark *requestWatermark, stopCh <-chan struct
 	// fall too far behind, then there is a long delay in responding to the next request received while the observer
 	// catches back up.
 	go wait.Until(func() {
-		watermark.readOnlyObserver.Add(0)
-		watermark.mutatingObserver.Add(0)
+		watermark.readOnlyObserver.Add(context.TODO(), 0)
+		watermark.mutatingObserver.Add(context.TODO(), 0)
 	}, observationMaintenancePeriod, stopCh)
 }
 
@@ -130,11 +130,11 @@ func WithMaxInFlightLimit(
 	var mutatingChan chan bool
 	if nonMutatingLimit != 0 {
 		nonMutatingChan = make(chan bool, nonMutatingLimit)
-		watermark.readOnlyObserver.SetX1(float64(nonMutatingLimit))
+		watermark.readOnlyObserver.SetX1(context.TODO(), float64(nonMutatingLimit))
 	}
 	if mutatingLimit != 0 {
 		mutatingChan = make(chan bool, mutatingLimit)
-		watermark.mutatingObserver.SetX1(float64(mutatingLimit))
+		watermark.mutatingObserver.SetX1(context.TODO(), float64(mutatingLimit))
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -170,16 +170,16 @@ func WithMaxInFlightLimit(
 				// served, because both states contribute to the
 				// sampled stats on concurrency.
 				if isMutatingRequest {
-					watermark.recordMutating(len(c))
+					watermark.recordMutating(ctx, len(c))
 				} else {
-					watermark.recordReadOnly(len(c))
+					watermark.recordReadOnly(ctx, len(c))
 				}
 				defer func() {
 					<-c
 					if isMutatingRequest {
-						watermark.recordMutating(len(c))
+						watermark.recordMutating(ctx, len(c))
 					} else {
-						watermark.recordReadOnly(len(c))
+						watermark.recordReadOnly(ctx, len(c))
 					}
 				}()
 				handler.ServeHTTP(w, r)

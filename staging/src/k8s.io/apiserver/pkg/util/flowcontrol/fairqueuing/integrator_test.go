@@ -17,6 +17,7 @@ limitations under the License.
 package fairqueuing
 
 import (
+	"context"
 	"math"
 	"testing"
 	"time"
@@ -28,7 +29,7 @@ func TestIntegrator(t *testing.T) {
 	now := time.Now()
 	clk := clock.NewFakeClock(now)
 	igr := NewIntegrator(clk)
-	igr.Add(3)
+	igr.Add(context.TODO(), 3)
 	clk.Step(time.Second)
 	results := igr.GetResults()
 	rToo := igr.Reset()
@@ -38,13 +39,13 @@ func TestIntegrator(t *testing.T) {
 	if !results.Equal(&rToo) {
 		t.Errorf("expected %#+v, got %#+v", results, rToo)
 	}
-	igr.Set(2)
+	igr.Set(context.TODO(), 2)
 	results = igr.GetResults()
 	if e := (IntegratorResults{Duration: 0, Average: math.NaN(), Deviation: math.NaN(), Min: 2, Max: 3}); !e.Equal(&results) {
 		t.Errorf("expected %#+v, got %#+v", e, results)
 	}
 	clk.Step(time.Millisecond)
-	igr.Add(-1)
+	igr.Add(context.TODO(), -1)
 	clk.Step(time.Millisecond)
 	results = igr.GetResults()
 	if e := (IntegratorResults{Duration: 2 * time.Millisecond.Seconds(), Average: 1.5, Deviation: 0.5, Min: 1, Max: 3}); !e.Equal(&results) {

@@ -104,16 +104,16 @@ func WithPriorityAndFairness(
 		isMutatingRequest := !nonMutatingRequestVerbs.Has(requestInfo.Verb)
 		noteExecutingDelta := func(delta int32) {
 			if isMutatingRequest {
-				watermark.recordMutating(int(atomic.AddInt32(&atomicMutatingExecuting, delta)))
+				watermark.recordMutating(ctx, int(atomic.AddInt32(&atomicMutatingExecuting, delta)))
 			} else {
-				watermark.recordReadOnly(int(atomic.AddInt32(&atomicReadOnlyExecuting, delta)))
+				watermark.recordReadOnly(ctx, int(atomic.AddInt32(&atomicReadOnlyExecuting, delta)))
 			}
 		}
 		noteWaitingDelta := func(delta int32) {
 			if isMutatingRequest {
-				waitingMark.recordMutating(int(atomic.AddInt32(&atomicMutatingWaiting, delta)))
+				waitingMark.recordMutating(ctx, int(atomic.AddInt32(&atomicMutatingWaiting, delta)))
 			} else {
-				waitingMark.recordReadOnly(int(atomic.AddInt32(&atomicReadOnlyWaiting, delta)))
+				waitingMark.recordReadOnly(ctx, int(atomic.AddInt32(&atomicReadOnlyWaiting, delta)))
 			}
 		}
 		execute := func() {

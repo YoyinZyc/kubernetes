@@ -16,17 +16,19 @@ limitations under the License.
 
 package metrics
 
+import "context"
+
 // TimedObserver gets informed about the values assigned to a variable
 // `X float64` over time, and reports on the ratio `X/X1`.
 type TimedObserver interface {
 	// Add notes a change to the variable
-	Add(deltaX float64)
+	Add(ctx context.Context, deltaX float64)
 
 	// Set notes a setting of the variable
-	Set(x float64)
+	Set(ctx context.Context, x float64)
 
 	// SetX1 changes the value to use for X1
-	SetX1(x1 float64)
+	SetX1(ctx context.Context, x1 float64)
 }
 
 // TimedObserverGenerator creates related observers that are

@@ -17,6 +17,7 @@ limitations under the License.
 package fairqueuing
 
 import (
+	"context"
 	"math"
 	"sync"
 	"time"
@@ -70,10 +71,10 @@ func NewIntegrator(clock clock.PassiveClock) Integrator {
 	}
 }
 
-func (igr *integrator) SetX1(x1 float64) {
+func (igr *integrator) SetX1(ctx context.Context, x1 float64) {
 }
 
-func (igr *integrator) Set(x float64) {
+func (igr *integrator) Set(ctx context.Context, x float64) {
 	igr.Lock()
 	igr.setLocked(x)
 	igr.Unlock()
@@ -90,7 +91,7 @@ func (igr *integrator) setLocked(x float64) {
 	}
 }
 
-func (igr *integrator) Add(deltaX float64) {
+func (igr *integrator) Add(ctx context.Context, deltaX float64) {
 	igr.Lock()
 	igr.setLocked(igr.x + deltaX)
 	igr.Unlock()
